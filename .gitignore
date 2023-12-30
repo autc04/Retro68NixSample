@@ -1,0 +1,4 @@
+result
+build/
+.direnv
+.vscode
