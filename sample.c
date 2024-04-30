@@ -26,8 +26,11 @@ enum
     kItemQuit = 4
 };
 
-void MakeNewWindow(ConstStr255Param title)
+void MakeNewWindow()
 {
+    Str255 title;
+    GetIndString(title, 128, 1);
+
     if(nextWindowRect.bottom > qd.screenBits.bounds.bottom
         || nextWindowRect.right > qd.screenBits.bounds.right)
     {
@@ -116,8 +119,7 @@ void DoMenuCommand(long menuCommand)
         switch(menuItem)
         {
             case kItemNewDoc:
-                GetIndString(str,128,1);
-                MakeNewWindow(str);
+                MakeNewWindow();
                 break;
 
             case kItemClose:    // close
@@ -188,6 +190,8 @@ int main(void)
     Rect r;
     SetRect(&initialWindowRect,20,60,400,260);
     nextWindowRect = initialWindowRect;
+
+    MakeNewWindow();
 
     for(;;)
     {
