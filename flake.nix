@@ -11,10 +11,9 @@
 
       systems =
         [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
-      perSystem = { config, self', inputs', pkgs, system, ... }: {
-
-        packages.m68k =
-          inputs'.Retro68.legacyPackages.pkgsCross.m68k.stdenv.mkDerivation {
+      perSystem = { config, self', inputs', pkgs, system, ... }:
+        let
+          derivationArgs = {
             name = "Sample";
             src = ./.;
 
@@ -25,32 +24,28 @@
               inputs'.Retro68.packages.tools
             ];
           };
-        packages.powerpc =
-          inputs'.Retro68.legacyPackages.pkgsCross.powerpc.stdenv.mkDerivation {
-            name = "Sample";
-            src = ./.;
+        in {
 
-            nativeBuildInputs = [
-              pkgs.cmake
-              pkgs.ninja
-              pkgs.nixfmt
-              inputs'.Retro68.packages.tools
-            ];
-          };
+          packages.m68k =
+            inputs'.Retro68.legacyPackages.pkgsCross.m68k.stdenv.mkDerivation
+            derivationArgs;
+          packages.powerpc =
+            inputs'.Retro68.legacyPackages.pkgsCross.powerpc.stdenv.mkDerivation
+            derivationArgs;
 
-        packages.fat = pkgs.runCommand "fat" { } ''
-          mkdir -p $out
-          ${inputs'.Retro68.packages.tools}/bin/Rez -o $out/Sample.bin \
-            --copy ${self'.packages.m68k}/Sample.bin \
-            --copy ${self'.packages.powerpc}/Sample.bin \
-            --data ${self'.packages.powerpc}/Sample.bin \
-            --type 'APPL' --creator '????'
-        '';
+          packages.fat = pkgs.runCommand "fat" { } ''
+            mkdir -p $out
+            ${inputs'.Retro68.packages.tools}/bin/Rez -o $out/Sample.bin \
+              --copy ${self'.packages.m68k}/Sample.bin \
+              --copy ${self'.packages.powerpc}/Sample.bin \
+              --data ${self'.packages.powerpc}/Sample.bin \
+              --type 'APPL' --creator '????'
+          '';
 
-        packages.default = self'.packages.fat;
-        devShells.default = self'.packages.m68k;
+          packages.default = self'.packages.fat;
+          devShells.default = self'.packages.m68k;
 
-        formatter = pkgs.nixfmt;
-      };
+          formatter = pkgs.nixfmt;
+        };
     };
 }
