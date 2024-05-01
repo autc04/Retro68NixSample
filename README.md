@@ -15,7 +15,8 @@ https://install.determinate.systems/.
 A binary cache will save you from compiling all of Retro68 yourself if
 it has already been built by a CI build. The binary cache currently contains binaries
 for x86_64 Linux and for x86_64 macOS
-(Apple Silicon users are out of luck for now as there is a shortage of free build servers for that platform...)
+Apple Silicon users are out of luck for now as there is a shortage of
+free build servers for that platform. You can skip this step.
 
 First, install Cachix according to the instructions at https://www.cachix.org/
 
@@ -23,8 +24,8 @@ Then, run `cachix use autc04` to set up your system to use the `autc04` binary c
 
 ## Update the lockfile
 
-In case the `flake.lock` file does not refer to the newest version of Retro68,
-use the `nix flake update` command.
+The `flake.lock` file defines what version of Retro68 is being used.
+Use the `nix flake update` command to update everything to the newest version.
 
 ## Running a complete build
 
@@ -59,3 +60,11 @@ as you change into this directory. See https://direnv.net/.
 After installing it according to the instructions, use the `direnv allow` command
 to tell direnv that it is allowed to trust this directory.
 
+## Direnv in VS Code (optional)
+
+This workspace recommends the Martin Kühl's direnv extension;
+this extension uses direnv (if installed) to provide the development environment to 
+commands run by VSCode.
+
+With this installed, you should be able to use vscode's built-in CMake support to
+build your code from the IDE.
