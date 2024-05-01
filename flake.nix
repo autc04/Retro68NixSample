@@ -13,7 +13,7 @@
         [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { config, self', inputs', pkgs, system, ... }:
         let
-          derivationArgs = {
+          application = retroPkgs: retroPkgs.stdenvUniversal.mkDerivation {
             name = "Sample";
             src = ./.;
 
@@ -23,15 +23,17 @@
               pkgs.nixfmt
               inputs'.Retro68.packages.tools
             ];
+
+              # set an environment variable to the full path of the compiler,
+              # for use by c_cpp_properties.json for VSCode Intellisense
+            FULL_COMPILER_PATH = "${retroPkgs.stdenvUniversal.cc}/bin/${retroPkgs.targetPlatform.config}-g++";
           };
         in {
 
           packages.m68k =
-            inputs'.Retro68.legacyPackages.pkgsCross.m68k.stdenv.mkDerivation
-            derivationArgs;
+            application inputs'.Retro68.legacyPackages.pkgsCross.m68k;
           packages.powerpc =
-            inputs'.Retro68.legacyPackages.pkgsCross.powerpc.stdenv.mkDerivation
-            derivationArgs;
+            application inputs'.Retro68.legacyPackages.pkgsCross.powerpc;
 
           packages.fat = pkgs.runCommand "fat" { } ''
             mkdir -p $out
