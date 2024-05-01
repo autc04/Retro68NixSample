@@ -13,21 +13,42 @@
         [ "x86_64-linux" "aarch64-linux" "aarch64-darwin" "x86_64-darwin" ];
       perSystem = { config, self', inputs', pkgs, system, ... }:
         let
-          application = retroPkgs: retroPkgs.stdenvUniversal.mkDerivation {
-            name = "Sample";
-            src = ./.;
+          # the name of the application, should match name in CMakeLists.txt:
+          applicationName = "Sample";
 
-            nativeBuildInputs = [
-              pkgs.cmake
-              pkgs.ninja
-              pkgs.nixfmt
-              inputs'.Retro68.packages.tools
-            ];
+          # creator code for the application, should match creator in CMakeLists.txt:
+          applicationCreator = "????";
+
+          # whether to use the universal interfaces (true) or multiversal (false):
+          useUniversalInterfaces = false;
+
+          application = retroPkgs:
+            let
+              stdenv = if useUniversalInterfaces then
+                retroPkgs.stdenvUniversal
+              else
+                retroPkgs.stdenv;
+            in stdenv.mkDerivation {
+              name = applicationName;
+              src = ./.;
+
+              nativeBuildInputs = [
+                # build tools and useful tools available in the development shell
+                pkgs.cmake
+                pkgs.ninja
+                pkgs.nixfmt
+                inputs'.Retro68.packages.tools
+              ];
+
+              buildInputs = [
+                # libraries used by the application
+              ];
 
               # set an environment variable to the full path of the compiler,
               # for use by c_cpp_properties.json for VSCode Intellisense
-            FULL_COMPILER_PATH = "${retroPkgs.stdenvUniversal.cc}/bin/${retroPkgs.targetPlatform.config}-g++";
-          };
+              FULL_COMPILER_PATH =
+                "${stdenv.cc}/bin/${retroPkgs.targetPlatform.config}-g++";
+            };
         in {
 
           packages.m68k =
@@ -37,14 +58,19 @@
 
           packages.fat = pkgs.runCommand "fat" { } ''
             mkdir -p $out
-            ${inputs'.Retro68.packages.tools}/bin/Rez -o $out/Sample.bin \
-              --copy ${self'.packages.m68k}/Sample.bin \
-              --copy ${self'.packages.powerpc}/Sample.bin \
-              --data ${self'.packages.powerpc}/Sample.bin \
-              --type 'APPL' --creator '????'
+            ${inputs'.Retro68.packages.tools}/bin/Rez -o $out/${applicationName}.bin \
+              --copy ${self'.packages.m68k}/${applicationName}.bin \
+              --copy ${self'.packages.powerpc}/${applicationName}.bin \
+              --data ${self'.packages.powerpc}/${applicationName}.bin \
+              --type 'APPL' --creator '${applicationCreator}'
           '';
 
+          # package to build when `nix build` is run without extra arguments
+          # (choice of `m68k`, `powerpc`, or `fat`)
           packages.default = self'.packages.fat;
+
+          # platform/package configuration to use for `nix develop` without extra arguments:
+          # (choice of `m68k` or `powerpc`)
           devShells.default = self'.packages.m68k;
 
           formatter = pkgs.nixfmt;
